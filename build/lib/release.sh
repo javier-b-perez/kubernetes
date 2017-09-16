@@ -109,7 +109,7 @@ function kube::release::package_src_tarball() {
         \) -prune \
       \))
   )
-  "${TAR}" czf "${RELEASE_TARS}/kubernetes-src.tar.gz" -C "${KUBE_ROOT}" "${source_files[@]}"
+  tar czf "${RELEASE_TARS}/kubernetes-src.tar.gz" -C "${KUBE_ROOT}" "${source_files[@]}"
 }
 
 # Package up all of the cross compiled clients. Over time this should grow into
