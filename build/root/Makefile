@@ -379,6 +379,22 @@ release:
 	build/release.sh
 endif
 
+define CLOUD_RELEASE_HELP_INFO
+# Build a release using Cloud Builder
+#
+# Example:
+#   make cloud-release
+endef
+.PHONY: cloud-release
+ifeq ($(PRINT_HELP),y)
+cloud-release:
+	@echo "$$CLOUD_RELEASE_HELP_INFO"
+else
+cloud-release:
+	KUBE_RELEASE_RUN_TESTS=n
+	build/cloud-release.sh
+endif
+
 define RELEASE_SKIP_TESTS_HELP_INFO
 # Build a release, but skip tests
 #
