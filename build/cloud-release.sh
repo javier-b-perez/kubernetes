@@ -32,10 +32,13 @@ source "${KUBE_ROOT}/build/lib/release.sh"
 KUBE_RELEASE_RUN_TESTS=${KUBE_RELEASE_RUN_TESTS-y}
 kube::version::get_version_vars
 kube::version::save_version_vars "${KUBE_ROOT}/.dockerized-kube-version-defs"
-make cross
 
-if [[ $KUBE_RELEASE_RUN_TESTS =~ ^[yY]$ ]]; then
-  kube::build::run_build_command make test
+if [[ $KUBE_CLOUD_RELEASE =~ ^[yY]$ ]]; then
+  kube::release::package_tarballs
+else
+  make cross
+  
+  if [[ $KUBE_RELEASE_RUN_TESTS =~ ^[yY]$ ]]; then
+    kube::build::run_build_command make test
+  fi
 fi
-
-kube::release::package_tarballs
