@@ -30,7 +30,8 @@ source "${KUBE_ROOT}/build/common.sh"
 source "${KUBE_ROOT}/build/lib/release.sh"
 
 KUBE_RELEASE_RUN_TESTS=${KUBE_RELEASE_RUN_TESTS-y}
-
+kube::version::get_version_vars
+kube::version::save_version_vars "${KUBE_ROOT}/.dockerized-kube-version-defs"
 make cross
 
 if [[ $KUBE_RELEASE_RUN_TESTS =~ ^[yY]$ ]]; then
