@@ -416,6 +416,22 @@ cross:
 	hack/make-rules/cross.sh
 endif
 
+define RELEASE_ARTIFACTS_HELP_INFO
+# Create release artifacts from '_output/dockerized' directory.
+# Usually after you run 'make cross' and 'make test'.
+#
+# Example:
+#   make release-artifacts
+endef
+.PHONY: release-artifacts
+ifeq ($(PRINT_HELP),y)
+release-artifacts:
+	@echo "$$RELEASE_ARTIFACTS_HELP_INFO"
+else
+release-artifacts:
+	build/release-artifacts.sh
+endif
+
 define CMD_HELP_INFO
 # Add rules for all directories in cmd/
 #

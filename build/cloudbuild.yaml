@@ -1,0 +1,51 @@
+# To test locally, get 'container-builder-local' for your system.
+# Instructions: https://github.com/GoogleCloudPlatform/container-builder-local
+#
+# You will need to build the k8s-cloud-builder image first.
+# You could also use the official k8s-cloud-builder once we define the location.
+# see https://github.com/rvkubiak/k8s-build/tree/update_k8s_builder/build_container
+#
+# Inside kubernetes code run:
+#  container-builder-local_linux_amd64-v0.2.3 --dryrun=false \
+#    --substitutions="_GCS_RELEASE_BUCKET=my-gcs-bucket" \
+#    --config build/cloudbuild.yaml .
+timeout: '10800s'
+
+steps:
+  - name: 'gcr.io/$PROJECT_ID/k8s-cloud-builder'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        docker_image="gcr.io/google_containers/kube-cross"
+        version="$(cat ./build/build-image/cross/VERSION)"
+        image="$${docker_image}:$${version}"
+        local_image="$${docker_image}:local"
+        docker pull $${image} &> /dev/null || true
+        if [ "$(docker images -q $${image})" == "" ] ; then
+            echo "Building docker image $${image}"
+            docker build --cache-from $${docker_image} -t $${image} -t $${local_image} ./build/build-image/cross/
+        fi
+
+  - name: 'gcr.io/google_containers/kube-cross:local'
+    env:
+      - 'KUBE_OUTPUT_SUBPATH=_output/dockerized'
+      - 'KUBE_BUILD_PLATFORMS=linux/amd64'
+    args: ['make', 'cross']
+
+  - name: 'gcr.io/$PROJECT_ID/k8s-cloud-builder'
+    entrypoint: 'make'
+    env:
+      - 'KUBE_BUILD_PLATFORMS=linux/amd64'
+    args: ['release-artifacts']
+
+  - name: 'gcr.io/$PROJECT_ID/k8s-cloud-builder'
+    entrypoint: 'git'
+    args: ['clone', 'https://github.com/kubernetes/release.git']
+
+  - name: 'gcr.io/$PROJECT_ID/k8s-cloud-builder'
+    entrypoint: 'bash'
+    args: ['./release/push-build.sh', '--nomock', '--release-type=release',
+          '--bucket=${_GCS_RELEASE_BUCKET}', '--verbose']
+
